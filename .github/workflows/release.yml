@@ -33,7 +33,7 @@ jobs:
         with:
           type: 'zip'
           filename: MiControl-${{github.ref_name}}-linux.zip
-          directory: build/linux/x64/release/bundle
+          directory: build/linux/arm64/release/bundle
       - name: Linux Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
