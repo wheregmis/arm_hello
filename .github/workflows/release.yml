@@ -1,0 +1,108 @@
+name: Flutter CI
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - v[0-9]+.*
+
+jobs:
+  build-and-release-linux:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.19'
+      - name: Update Missing Fetch
+        run: sudo apt update --fix-missing
+      - name: Install dependencies
+        run: sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libwebkit2gtk-4.0-dev
+      - name: Install project dependencies
+        run: flutter pub get
+      - name: Generate intermediates
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+      - name: Enable linux build
+        run: flutter config --enable-linux-desktop
+      - name: Build artifacts
+        run: flutter build linux --release
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
+        with:
+          type: 'zip'
+          filename: MiControl-${{github.ref_name}}-linux.zip
+          directory: build/linux/x64/release/bundle
+      - name: Linux Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: build/linux/arm64/release/bundle/MiControl-${{github.ref_name}}-linux.zip
+
+#   build-and-release-windows:
+#     runs-on: windows-latest
+
+#     steps:
+#       - uses: actions/checkout@v2
+#       - uses: subosito/flutter-action@v2
+#         with:
+#           channel: 'stable'
+#           architecture: x64
+#           flutter-version: '3.24.2'
+#       - name: Install project dependencies
+#         run: flutter pub get
+#       - name: Generate intermediates
+#         run: flutter pub run build_runner build --delete-conflicting-outputs
+#       - name: Enable windows build
+#         run: flutter config --enable-windows-desktop
+#       - name: Build artifacts
+#         run: flutter build windows --release
+#       - name: Archive Release
+#         uses: thedoctor0/zip-release@master
+#         with:
+#           type: 'zip'
+#           filename: MiControl-${{github.ref_name}}-windows.zip
+#           directory: build/windows/x64/runner/Release
+#       - name: Windows Release
+#         uses: softprops/action-gh-release@v1
+#         if: startsWith(github.ref, 'refs/tags/')
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         with:
+#           files: build/windows/x64/runner/Release/MiControl-${{github.ref_name}}-windows.zip
+
+#   build-and-release-macos:
+#     runs-on: macos-latest
+
+#     steps:
+#       - uses: actions/checkout@v2
+#       - uses: subosito/flutter-action@v2
+#         with:
+#           channel: 'stable'
+#           architecture: x64
+#           flutter-version: '3.24.2'
+#       - name: Install project dependencies
+#         run: flutter pub get
+#       - name: Generate intermediates
+#         run: flutter pub run build_runner build --delete-conflicting-outputs
+#       - name: Enable macOS build
+#         run: flutter config --enable-macos-desktop
+#       - name: Build artifacts
+#         run: flutter build macos --release
+#       - name: Archive Release
+#         uses: thedoctor0/zip-release@master
+#         with:
+#           type: 'zip'
+#           filename: MiControl-${{github.ref_name}}-macos.zip
+#           directory: build/macos/Build/Products/Release
+#       - name: macOS Release
+#         uses: softprops/action-gh-release@v1
+#         if: startsWith(github.ref, 'refs/tags/')
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         with:
+#           files: build/macos/Build/Products/Release/MiControl-${{github.ref_name}}-macos.zip
