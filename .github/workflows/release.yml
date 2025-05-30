@@ -16,7 +16,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.19'
+          flutter-version: '3.32.0'
       - name: Update Missing Fetch
         run: sudo apt update --fix-missing
       - name: Install dependencies
